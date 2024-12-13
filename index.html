@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .ra-widget {
+            background: #17254A;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+        }
+        .ra-progress {
+            background: #2a3a6a;
+            border-radius: 4px;
+            height: 20px;
+            margin-top: 10px;
+        }
+        .ra-progress-bar {
+            background: #5c3391;
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease-in-out;
+        }
+        .ra-stats {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="ra-widget">
+        <div id="gameProgress"></div>
+    </div>
+
+    <script>
+        const USERNAME = 'marquessam';
+        const GAME_ID = '721';
+        const API_KEY = 'LeqarCXkIsCzzlyFET8LMKMP7jDzRzC7'; // Add your RetroAchievements API key here
+        const API_USER = 'marquessam'; // Add your RetroAchievements username here
+
+        async function updateProgress() {
+            try {
+                const params = new URLSearchParams({
+                    z: API_USER,
+                    y: API_KEY,
+                    u: USERNAME,
+                    g: GAME_ID
+                });
+
+                const response = await fetch(`https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?${params}`);
+                const data = await response.json();
+                
+                if (data.Title) {
+                    const numAchievements = Object.keys(data.Achievements).length;
+                    const completed = Object.values(data.Achievements)
+                        .filter(ach => parseInt(ach.DateEarned) > 0).length;
+                    const completionPct = ((completed / numAchievements) * 100).toFixed(2);
+
+                    const progressHtml = `
+                        <h3>${data.Title}</h3>
+                        <div class="ra-progress">
+                            <div class="ra-progress-bar" style="width: ${completionPct}%"></div>
+                        </div>
+                        <div class="ra-stats">
+                            ${completed}/${numAchievements} achievements (${completionPct}%)
+                        </div>
+                    `;
+                    
+                    document.getElementById('gameProgress').innerHTML = progressHtml;
+                } else {
+                    document.getElementById('gameProgress').innerHTML = 'Error: Could not load game data';
+                }
+            } catch (error) {
+                console.error('API Error:', error);
+                document.getElementById('gameProgress').innerHTML = `Error loading progress: ${error.message}`;
+            }
+        }
+
+        // Update on load and every 5 minutes
+        updateProgress();
+        setInterval(updateProgress, 300000);
+    </script>
+</body>
+</html>
