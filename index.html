@@ -42,44 +42,28 @@
     </div>
 
     <script>
+        const API_ENDPOINT = 'https://retroachievements.org/API';
         const USERNAME = 'marquessam';
         const GAME_ID = '3236';
-        const API_KEY = 'LeqarCXkIsCzzlyFET8LMKMP7jDzRzC7'; // Make sure this is your Web API Key
-        const API_USER = 'marquessam'; // Your RetroAchievements username
-
+        
         async function updateProgress() {
             try {
-                document.getElementById('debugInfo').innerHTML = 'Starting API request...';
+                document.getElementById('debugInfo').innerHTML = 'Starting API request...\n';
                 
-                const params = new URLSearchParams({
-                    z: API_USER,
-                    y: API_KEY,
-                    u: USERNAME,
-                    g: GAME_ID
-                });
-
-                const url = `https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?${params}`;
-                document.getElementById('debugInfo').innerHTML += '\nRequesting URL: ' + url;
-
-                const response = await fetch(url);
-                document.getElementById('debugInfo').innerHTML += '\nResponse status: ' + response.status;
+                const response = await fetch(`${API_ENDPOINT}/API_GetGame.php?i=${GAME_ID}`);
+                document.getElementById('debugInfo').innerHTML += `Response status: ${response.status}\n`;
                 
                 const data = await response.json();
-                document.getElementById('debugInfo').innerHTML += '\nAPI Response Data:\n' + JSON.stringify(data, null, 2);
+                document.getElementById('debugInfo').innerHTML += 'API Response Data:\n' + JSON.stringify(data, null, 2);
                 
                 if (data.Title) {
-                    const numAchievements = Object.keys(data.Achievements || {}).length;
-                    const completed = Object.values(data.Achievements || {})
-                        .filter(ach => parseInt(ach.DateEarned) > 0).length;
-                    const completionPct = ((completed / numAchievements) * 100).toFixed(2);
-
                     const progressHtml = `
                         <h3>${data.Title}</h3>
                         <div class="ra-progress">
-                            <div class="ra-progress-bar" style="width: ${completionPct}%"></div>
+                            <div class="ra-progress-bar" style="width: 0%"></div>
                         </div>
                         <div class="ra-stats">
-                            ${completed}/${numAchievements} achievements (${completionPct}%)
+                            Game ID: ${GAME_ID}
                         </div>
                     `;
                     
