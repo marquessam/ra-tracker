@@ -1,39 +1,28 @@
-const axios = require('axios');
+const axios = require('axios').default;
 
-module.exports = async function handler(req, res) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  
-  const { username = '', gameId = '' } = req.query;
-  const API_KEY = process.env.RA_API_KEY;
-  const API_USER = process.env.RA_USERNAME;
-  const BASE_URL = "https://retroachievements.org/API";
-  
+const handler = async (req, res) => {
   try {
+    // Basic error checking
+    if (!req.query.username || !req.query.gameId) {
+      return res.status(400).json({ error: 'Missing required parameters' });
+    }
+
     const params = new URLSearchParams({
-      z: API_USER,
-      y: API_KEY,
-      u: username,
-      g: gameId
+      z: process.env.RA_USERNAME,
+      y: process.env.RA_API_KEY,
+      u: req.query.username,
+      g: req.query.gameId
     });
 
-    const response = await axios.get(`${BASE_URL}/API_GetGameInfoAndUserProgress.php?${params}`);
-    const data = response.data;
-    
-    // Calculate completion percentage
-    const numAchievements = Object.keys(data.Achievements).length;
-    const completed = Object.values(data.Achievements)
-      .filter(ach => parseInt(ach.DateEarned) > 0).length;
-    const completionPct = ((completed / numAchievements) * 100).toFixed(2);
+    const response = await axios.get(
+      `https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?${params}`
+    );
 
-    res.status(200).json({
-      gameTitle: data.Title,
-      totalAchievements: numAchievements,
-      completedAchievements: completed,
-      completionPercentage: completionPct
-    });
+    return res.status(200).json(response.data);
   } catch (error) {
     console.error('API Error:', error);
-    res.status(500).json({ error: 'Failed to fetch data', details: error.message });
+    return res.status(500).json({ error: 'Internal server error' });
   }
-}
+};
+
+module.exports = handler;
