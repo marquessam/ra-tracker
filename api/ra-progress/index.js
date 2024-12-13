@@ -1,5 +1,3 @@
-const axios = require('axios');
-
 module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -26,10 +24,11 @@ module.exports = async (req, res) => {
     const url = `https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?${params}`;
     console.log('Requesting:', url);
 
-    const response = await axios.get(url);
+    const response = await fetch(url);
+    const data = await response.json();
     console.log('Response received');
 
-    return res.status(200).json(response.data);
+    return res.status(200).json(data);
   } catch (error) {
     console.error('API Error:', error.message);
     return res.status(500).json({ 
@@ -37,4 +36,5 @@ module.exports = async (req, res) => {
       message: error.message 
     });
   }
+};
 };
