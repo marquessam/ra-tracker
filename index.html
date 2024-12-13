@@ -25,11 +25,18 @@
             margin-top: 10px;
             font-size: 0.9em;
         }
+        .debug-info {
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 10px;
+            color: #cccccc;
+        }
     </style>
 </head>
 <body>
     <div class="ra-widget">
         <div id="gameProgress"></div>
+        <div id="debugInfo" class="debug-info"></div>
     </div>
 
     <script>
@@ -37,7 +44,7 @@
         const GAME_ID = '3236';
         const API_KEY = 'LeqarCXkIsCzzlyFET8LMKMP7jDzRzC7'; // Add your RetroAchievements API key here
         const API_USER = 'marquessam'; // Add your RetroAchievements username here
-
+      
         async function updateProgress() {
             try {
                 const params = new URLSearchParams({
@@ -47,12 +54,23 @@
                     g: GAME_ID
                 });
 
-                const response = await fetch(`https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?${params}`);
+                const url = `https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?${params}`;
+                console.log('Requesting URL:', url);
+
+                const response = await fetch(url);
                 const data = await response.json();
                 
+                // Debug output
+                document.getElementById('debugInfo').innerHTML = `
+                    API Response:<br>
+                    Game ID: ${GAME_ID}<br>
+                    Title: ${data.Title || 'No title'}<br>
+                    Raw data: ${JSON.stringify(data, null, 2)}
+                `;
+                
                 if (data.Title) {
-                    const numAchievements = Object.keys(data.Achievements).length;
-                    const completed = Object.values(data.Achievements)
+                    const numAchievements = Object.keys(data.Achievements || {}).length;
+                    const completed = Object.values(data.Achievements || {})
                         .filter(ach => parseInt(ach.DateEarned) > 0).length;
                     const completionPct = ((completed / numAchievements) * 100).toFixed(2);
 
@@ -73,6 +91,7 @@
             } catch (error) {
                 console.error('API Error:', error);
                 document.getElementById('gameProgress').innerHTML = `Error loading progress: ${error.message}`;
+                document.getElementById('debugInfo').innerHTML = `Error details: ${error.toString()}`;
             }
         }
 
@@ -81,4 +100,5 @@
         setInterval(updateProgress, 300000);
     </script>
 </body>
+</html>
 </html>
