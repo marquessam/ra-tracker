@@ -30,6 +30,8 @@
             font-size: 12px;
             margin-top: 10px;
             color: #cccccc;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -42,11 +44,13 @@
     <script>
         const USERNAME = 'marquessam';
         const GAME_ID = '3236';
-        const API_KEY = 'LeqarCXkIsCzzlyFET8LMKMP7jDzRzC7'; // Add your RetroAchievements API key here
-        const API_USER = 'marquessam'; // Add your RetroAchievements username here
-      
+        const API_KEY = 'LeqarCXkIsCzzlyFET8LMKMP7jDzRzC7'; // Make sure this is your Web API Key
+        const API_USER = 'marquessam'; // Your RetroAchievements username
+
         async function updateProgress() {
             try {
+                document.getElementById('debugInfo').innerHTML = 'Starting API request...';
+                
                 const params = new URLSearchParams({
                     z: API_USER,
                     y: API_KEY,
@@ -55,18 +59,13 @@
                 });
 
                 const url = `https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?${params}`;
-                console.log('Requesting URL:', url);
+                document.getElementById('debugInfo').innerHTML += '\nRequesting URL: ' + url;
 
                 const response = await fetch(url);
-                const data = await response.json();
+                document.getElementById('debugInfo').innerHTML += '\nResponse status: ' + response.status;
                 
-                // Debug output
-                document.getElementById('debugInfo').innerHTML = `
-                    API Response:<br>
-                    Game ID: ${GAME_ID}<br>
-                    Title: ${data.Title || 'No title'}<br>
-                    Raw data: ${JSON.stringify(data, null, 2)}
-                `;
+                const data = await response.json();
+                document.getElementById('debugInfo').innerHTML += '\nAPI Response Data:\n' + JSON.stringify(data, null, 2);
                 
                 if (data.Title) {
                     const numAchievements = Object.keys(data.Achievements || {}).length;
@@ -90,15 +89,13 @@
                 }
             } catch (error) {
                 console.error('API Error:', error);
-                document.getElementById('gameProgress').innerHTML = `Error loading progress: ${error.message}`;
-                document.getElementById('debugInfo').innerHTML = `Error details: ${error.toString()}`;
+                document.getElementById('gameProgress').innerHTML = 'Error loading progress';
+                document.getElementById('debugInfo').innerHTML += '\nError: ' + error.toString();
             }
         }
 
-        // Update on load and every 5 minutes
+        // Update immediately
         updateProgress();
-        setInterval(updateProgress, 300000);
     </script>
 </body>
-</html>
 </html>
