@@ -2,197 +2,103 @@
 <html>
 <head>
     <style>
-        .ra-widget {
-            background: #17254A;
-            color: white;
+        /* ... (keep all previous styles) ... */
+
+        .ra-loading {
+            text-align: center;
+            padding: 40px;
+            background: #2a3a6a;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .ra-loading-spinner {
+            border: 4px solid #17254A;
+            border-top: 4px solid #5c3391;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .ra-error {
+            background: #2a3a6a;
+            color: #ff6b6b;
             padding: 20px;
             border-radius: 8px;
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .ra-game-info {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #2a3a6a;
-        }
-        .ra-box-art {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-right: 15px;
-        }
-        .ra-game-title {
-            color: #5c3391;
-            margin: 0;
-            font-size: 1.5em;
-        }
-        .ra-leaderboard-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            margin: 8px 0;
-            background: #2a3a6a;
-            border-radius: 4px;
-            transition: transform 0.2s;
-        }
-        .ra-leaderboard-item:hover {
-            transform: translateX(5px);
-        }
-        .ra-rank {
-            font-size: 1.2em;
-            font-weight: bold;
-            width: 40px;
-            color: white;
-        }
-        .ra-medal {
-            font-size: 1.4em;
-            width: 40px;
-        }
-        .ra-profile-img {
-            width: 50px;
-            height: 50px;
-            border-radius: 25px;
-            margin-right: 15px;
-            border: 2px solid #5c3391;
-        }
-        .ra-user-info {
-            flex: 1;
-        }
-        .ra-username {
-            font-weight: bold;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-        }
-        .ra-username a {
-            color: white;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        .ra-username a:hover {
-            color: #5c3391;
-        }
-        .ra-progress {
-            background: #17254A;
-            border-radius: 4px;
-            height: 10px;
-            margin-top: 5px;
-            width: 100%;
-            max-width: 300px;
-        }
-        .ra-progress-bar {
-            background: #5c3391;
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.5s ease-in-out;
-        }
-        .ra-completion {
-            margin-left: 15px;
-            font-size: 0.9em;
-            min-width: 120px;
-            text-align: right;
-        }
-        .ra-update-time {
+            margin: 20px 0;
             text-align: center;
-            margin-top: 20px;
-            font-size: 0.8em;
-            color: #666;
         }
     </style>
 </head>
 <body>
     <div class="ra-widget">
-        <div id="leaderboard"></div>
+        <div id="leaderboard">
+            <div class="ra-loading">
+                <div class="ra-loading-spinner"></div>
+                <div>Loading leaderboard data...</div>
+                <div style="font-size: 0.8em; margin-top: 10px; color: #888;">
+                    This may take a few moments as we fetch data for all players
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         const GAME_ID = '3236';
+        let updateTimer = null;
         
-        function getMedal(position) {
-            switch(position) {
-                case 0: return '🥇';
-                case 1: return '🥈';
-                case 2: return '🥉';
-                default: return '';
-            }
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleString();
-        }
+        // ... (keep getMedal and formatDate functions) ...
 
         async function updateLeaderboard() {
             try {
+                document.getElementById('leaderboard').innerHTML = `
+                    <div class="ra-loading">
+                        <div class="ra-loading-spinner"></div>
+                        <div>Loading leaderboard data...</div>
+                        <div style="font-size: 0.8em; margin-top: 10px; color: #888;">
+                            This may take a few moments as we fetch data for all players
+                        </div>
+                    </div>
+                `;
+
                 const response = await fetch(`/api/game-progress?gameId=${GAME_ID}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
                 
-                if (!data.gameInfo || !data.leaderboard) {
-                    throw new Error('Invalid data received from API');
-                }
+                // ... (keep the rest of the HTML generation code) ...
 
-                let html = `
-                    <div class="ra-game-info">
-                        <img src="https://retroachievements.org${data.gameInfo.ImageIcon}" 
-                             alt="${data.gameInfo.Title}" 
-                             class="ra-box-art"
-                             onerror="this.src='https://retroachievements.org/Images/017657.png'">
-                        <h2 class="ra-game-title">${data.gameInfo.Title}</h2>
-                    </div>
-                `;
-
-                data.leaderboard.forEach((user, index) => {
-                    if (!user) return; // Skip any null/undefined entries
-                    
-                    html += `
-                        <div class="ra-leaderboard-item">
-                            <span class="ra-rank">#${index + 1}</span>
-                            <span class="ra-medal">${getMedal(index)}</span>
-                            <img src="${user.profileImage}" 
-                                 alt="${user.username}" 
-                                 class="ra-profile-img"
-                                 onerror="this.src='https://retroachievements.org/UserPic/_user.png'">
-                            <div class="ra-user-info">
-                                <div class="ra-username">
-                                    <a href="${user.profileUrl}" target="_blank">${user.username}</a>
-                                </div>
-                                <div class="ra-progress">
-                                    <div class="ra-progress-bar" style="width: ${user.completionPercentage || 0}%"></div>
-                                </div>
-                            </div>
-                            <div class="ra-completion">
-                                ${user.completedAchievements || 0}/${user.totalAchievements || 0}
-                                <br>
-                                ${user.completionPercentage || 0}%
-                            </div>
-                        </div>
-                    `;
-                });
-
-                if (data.lastUpdated) {
-                    html += `
-                        <div class="ra-update-time">
-                            Last updated: ${formatDate(data.lastUpdated)}
-                        </div>
-                    `;
-                }
-                
-                document.getElementById('leaderboard').innerHTML = html;
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('leaderboard').innerHTML = `Error loading leaderboard: ${error.message}`;
+                document.getElementById('leaderboard').innerHTML = `
+                    <div class="ra-error">
+                        Error loading leaderboard: ${error.message}
+                        <br><br>
+                        <button onclick="retryUpdate()" class="ra-retry-button">
+                            Try Again
+                        </button>
+                    </div>
+                `;
             }
         }
 
-        // Update on load and every 5 minutes
+        function retryUpdate() {
+            updateLeaderboard();
+        }
+
+        // Initial update
         updateLeaderboard();
-        setInterval(updateLeaderboard, 300000);
+
+        // Update every 5 minutes
+        updateTimer = setInterval(updateLeaderboard, 300000);
     </script>
 </body>
 </html>
