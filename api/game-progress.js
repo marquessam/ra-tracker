@@ -22,10 +22,12 @@ module.exports = async (req, res) => {
     ];
     
     if (!process.env.RA_API_KEY || !process.env.RA_USERNAME) {
-      return res.status(500).json({ error: 'Missing environment variables' });
+      throw new Error('Missing environment variables');
     }
 
-    // Fetch data for all users
+    let validGameInfo = null;
+
+    // Fetch data for all users with better error handling
     const usersProgress = await Promise.all(users.map(async (username) => {
       try {
         const params = new URLSearchParams({
@@ -37,30 +39,41 @@ module.exports = async (req, res) => {
 
         const url = `https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?${params}`;
         const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
+        
+        // Store valid game info if we haven't already
+        if (!validGameInfo && data.Title && data.ImageIcon) {
+          validGameInfo = {
+            Title: data.Title,
+            ImageIcon: data.ImageIcon
+          };
+        }
 
-        const numAchievements = Object.keys(data.Achievements || {}).length;
-        const completed = Object.values(data.Achievements || {})
-          .filter(ach => parseInt(ach.DateEarned) > 0).length;
-        const completionPct = ((completed / numAchievements) * 100).toFixed(2);
+        const numAchievements = data.Achievements ? Object.keys(data.Achievements).length : 0;
+        const completed = data.Achievements ? 
+          Object.values(data.Achievements).filter(ach => parseInt(ach.DateEarned) > 0).length : 0;
+        const completionPct = numAchievements > 0 ? ((completed / numAchievements) * 100).toFixed(2) : "0.00";
 
         return {
           username,
           profileImage: `https://retroachievements.org/UserPic/${username}.png`,
+          profileUrl: `https://retroachievements.org/user/${username}`,
           completedAchievements: completed,
           totalAchievements: numAchievements,
-          completionPercentage: parseFloat(completionPct),
-          lastUpdate: new Date().toISOString(),
-          gameInfo: {
-            Title: data.Title,
-            ImageIcon: data.ImageIcon
-          }
+          completionPercentage: parseFloat(completionPct) || 0,
+          lastUpdate: new Date().toISOString()
         };
       } catch (error) {
         console.error(`Error fetching data for ${username}:`, error);
         return {
           username,
           profileImage: `https://retroachievements.org/UserPic/${username}.png`,
+          profileUrl: `https://retroachievements.org/user/${username}`,
           completedAchievements: 0,
           totalAchievements: 0,
           completionPercentage: 0,
@@ -69,17 +82,25 @@ module.exports = async (req, res) => {
       }
     }));
 
-    // Sort users by completion percentage
-    const sortedUsers = usersProgress.sort((a, b) => b.completionPercentage - a.completionPercentage);
+    // Filter out any failed requests and sort by completion percentage
+    const sortedUsers = usersProgress
+      .filter(user => !user.error)
+      .sort((a, b) => b.completionPercentage - a.completionPercentage);
 
     return res.status(200).json({
-      gameInfo: sortedUsers.find(u => !u.error)?.gameInfo || { Title: "Final Fantasy Tactics: The War of the Lions" },
+      gameInfo: validGameInfo || { 
+        Title: "Final Fantasy Tactics: The War of the Lions",
+        ImageIcon: "/Images/017657.png"
+      },
       leaderboard: sortedUsers,
       lastUpdated: new Date().toISOString()
     });
 
   } catch (error) {
     console.error('API Error:', error);
-    return res.status(500).json({ error: 'Failed to fetch leaderboard data', details: error.message });
+    return res.status(500).json({ 
+      error: 'Failed to fetch leaderboard data', 
+      details: error.message 
+    });
   }
 };
