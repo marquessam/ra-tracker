@@ -1,5 +1,4 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 module.exports = async (req, res) => {
@@ -89,16 +88,22 @@ module.exports = async (req, res) => {
     }
 
     console.log('Finished fetching all user data');
+    
+    // Sort users and split into top 10 and others
     const sortedUsers = usersProgress
       .filter(user => !user.error)
       .sort((a, b) => b.completionPercentage - a.completionPercentage);
+
+    const topTen = sortedUsers.slice(0, 10);
+    const additionalParticipants = sortedUsers.slice(10).map(user => user.username);
 
     const response = {
       gameInfo: validGameInfo || { 
         Title: "Final Fantasy Tactics: The War of the Lions",
         ImageIcon: "/Images/017657.png"
       },
-      leaderboard: sortedUsers,
+      leaderboard: topTen,
+      additionalParticipants: additionalParticipants,
       lastUpdated: new Date().toISOString()
     };
 
