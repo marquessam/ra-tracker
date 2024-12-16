@@ -1,10 +1,10 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-// Helper function to delay execution
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  console.log('API request started');
   
   try {
     const { gameId } = req.query;
@@ -28,14 +28,14 @@ module.exports = async (req, res) => {
       throw new Error('Missing environment variables');
     }
 
+    console.log('Starting user data fetch');
     let validGameInfo = null;
     const usersProgress = [];
 
-    // Fetch data for users sequentially with delays
     for (const username of users) {
       try {
-        // Add delay between requests
-        await delay(300); // 300ms delay between each request
+        console.log(`Fetching data for ${username}`);
+        await delay(300);
 
         const params = new URLSearchParams({
           z: process.env.RA_USERNAME,
@@ -52,7 +52,8 @@ module.exports = async (req, res) => {
         }
         
         const data = await response.json();
-        
+        console.log(`Successfully fetched data for ${username}`);
+
         if (!validGameInfo && data.Title && data.ImageIcon) {
           validGameInfo = {
             Title: data.Title,
@@ -71,8 +72,7 @@ module.exports = async (req, res) => {
           profileUrl: `https://retroachievements.org/user/${username}`,
           completedAchievements: completed,
           totalAchievements: numAchievements,
-          completionPercentage: parseFloat(completionPct) || 0,
-          lastUpdate: new Date().toISOString()
+          completionPercentage: parseFloat(completionPct) || 0
         });
       } catch (error) {
         console.error(`Error fetching data for ${username}:`, error);
@@ -88,18 +88,22 @@ module.exports = async (req, res) => {
       }
     }
 
+    console.log('Finished fetching all user data');
     const sortedUsers = usersProgress
       .filter(user => !user.error)
       .sort((a, b) => b.completionPercentage - a.completionPercentage);
 
-    return res.status(200).json({
+    const response = {
       gameInfo: validGameInfo || { 
         Title: "Final Fantasy Tactics: The War of the Lions",
         ImageIcon: "/Images/017657.png"
       },
       leaderboard: sortedUsers,
       lastUpdated: new Date().toISOString()
-    });
+    };
+
+    console.log('Sending response');
+    return res.status(200).json(response);
 
   } catch (error) {
     console.error('API Error:', error);
