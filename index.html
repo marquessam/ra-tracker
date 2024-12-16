@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <!-- Keep previous styles -->
     <style>
-        /* ... (keep all previous styles) ... */
-
         .ra-loading {
             text-align: center;
             padding: 40px;
@@ -22,41 +21,41 @@
             margin: 0 auto 20px;
         }
 
+        .ra-retry-button {
+            background: #5c3391;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .ra-retry-button:hover {
+            background: #4a2a75;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        .ra-error {
-            background: #2a3a6a;
-            color: #ff6b6b;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="ra-widget">
-        <div id="leaderboard">
-            <div class="ra-loading">
-                <div class="ra-loading-spinner"></div>
-                <div>Loading leaderboard data...</div>
-                <div style="font-size: 0.8em; margin-top: 10px; color: #888;">
-                    This may take a few moments as we fetch data for all players
-                </div>
-            </div>
-        </div>
+        <div id="leaderboard"></div>
     </div>
 
     <script>
         const GAME_ID = '3236';
+        const TIMEOUT_DURATION = 30000; // 30 seconds timeout
         let updateTimer = null;
-        
-        // ... (keep getMedal and formatDate functions) ...
 
-        async function updateLeaderboard() {
+        async function updateLeaderboardWithTimeout() {
+            const timeout = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Request timed out')), TIMEOUT_DURATION)
+            );
+
             try {
                 document.getElementById('leaderboard').innerHTML = `
                     <div class="ra-loading">
@@ -68,14 +67,59 @@
                     </div>
                 `;
 
-                const response = await fetch(`/api/game-progress?gameId=${GAME_ID}`);
+                const fetchPromise = fetch(`/api/game-progress?gameId=${GAME_ID}`);
+                const response = await Promise.race([fetchPromise, timeout]);
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
                 const data = await response.json();
                 
-                // ... (keep the rest of the HTML generation code) ...
+                // Generate the leaderboard HTML (keep your existing HTML generation code)
+                let html = `
+                    <div class="ra-game-info">
+                        <img src="https://retroachievements.org${data.gameInfo.ImageIcon}" 
+                             alt="${data.gameInfo.Title}" 
+                             class="ra-box-art"
+                             onerror="this.src='https://retroachievements.org/Images/017657.png'">
+                        <h2 class="ra-game-title">${data.gameInfo.Title}</h2>
+                    </div>
+                `;
 
+                data.leaderboard.forEach((user, index) => {
+                    html += `
+                        <div class="ra-leaderboard-item">
+                            <span class="ra-rank">#${index + 1}</span>
+                            <span class="ra-medal">${getMedal(index)}</span>
+                            <img src="${user.profileImage}" 
+                                 alt="${user.username}" 
+                                 class="ra-profile-img"
+                                 onerror="this.src='https://retroachievements.org/UserPic/_user.png'">
+                            <div class="ra-user-info">
+                                <div class="ra-username">
+                                    <a href="${user.profileUrl}" target="_blank">${user.username}</a>
+                                </div>
+                                <div class="ra-progress">
+                                    <div class="ra-progress-bar" style="width: ${user.completionPercentage}%"></div>
+                                </div>
+                            </div>
+                            <div class="ra-completion">
+                                ${user.completedAchievements}/${user.totalAchievements}
+                                <br>
+                                ${user.completionPercentage}%
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <div class="ra-update-time">
+                        Last updated: ${formatDate(data.lastUpdated)}
+                    </div>
+                `;
+                
+                document.getElementById('leaderboard').innerHTML = html;
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('leaderboard').innerHTML = `
@@ -91,14 +135,14 @@
         }
 
         function retryUpdate() {
-            updateLeaderboard();
+            updateLeaderboardWithTimeout();
         }
 
         // Initial update
-        updateLeaderboard();
+        updateLeaderboardWithTimeout();
 
         // Update every 5 minutes
-        updateTimer = setInterval(updateLeaderboard, 300000);
+        updateTimer = setInterval(updateLeaderboardWithTimeout, 300000);
     </script>
 </body>
 </html>
