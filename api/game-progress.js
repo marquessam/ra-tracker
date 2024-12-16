@@ -1,21 +1,13 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 module.exports = async (req, res) => {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   
   try {
     const { gameId } = req.query;
     
-    // Verify environment variables
     if (!process.env.RA_API_KEY || !process.env.RA_USERNAME) {
-      return res.status(500).json({ 
-        error: 'Missing environment variables',
-        check: {
-          hasApiKey: !!process.env.RA_API_KEY,
-          hasUsername: !!process.env.RA_USERNAME
-        }
-      });
+      return res.status(500).json({ error: 'Missing environment variables' });
     }
 
     const params = new URLSearchParams({
@@ -37,9 +29,14 @@ module.exports = async (req, res) => {
 
       return res.status(200).json({
         Title: data.Title,
+        ImageIcon: data.ImageIcon,
+        ImageTitle: data.ImageTitle,
+        ImageIngame: data.ImageIngame,
         totalAchievements: numAchievements,
         completedAchievements: completed,
-        completionPercentage: completionPct
+        completionPercentage: completionPct,
+        username: process.env.RA_USERNAME,
+        profileImage: `https://retroachievements.org/UserPic/${process.env.RA_USERNAME}.png`
       });
     } else {
       return res.status(404).json({ error: 'Game not found' });
