@@ -1,5 +1,8 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
+// Helper function to delay execution
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   
@@ -26,10 +29,14 @@ module.exports = async (req, res) => {
     }
 
     let validGameInfo = null;
+    const usersProgress = [];
 
-    // Fetch data for all users with better error handling
-    const usersProgress = await Promise.all(users.map(async (username) => {
+    // Fetch data for users sequentially with delays
+    for (const username of users) {
       try {
+        // Add delay between requests
+        await delay(300); // 300ms delay between each request
+
         const params = new URLSearchParams({
           z: process.env.RA_USERNAME,
           y: process.env.RA_API_KEY,
@@ -46,7 +53,6 @@ module.exports = async (req, res) => {
         
         const data = await response.json();
         
-        // Store valid game info if we haven't already
         if (!validGameInfo && data.Title && data.ImageIcon) {
           validGameInfo = {
             Title: data.Title,
@@ -59,7 +65,7 @@ module.exports = async (req, res) => {
           Object.values(data.Achievements).filter(ach => parseInt(ach.DateEarned) > 0).length : 0;
         const completionPct = numAchievements > 0 ? ((completed / numAchievements) * 100).toFixed(2) : "0.00";
 
-        return {
+        usersProgress.push({
           username,
           profileImage: `https://retroachievements.org/UserPic/${username}.png`,
           profileUrl: `https://retroachievements.org/user/${username}`,
@@ -67,10 +73,10 @@ module.exports = async (req, res) => {
           totalAchievements: numAchievements,
           completionPercentage: parseFloat(completionPct) || 0,
           lastUpdate: new Date().toISOString()
-        };
+        });
       } catch (error) {
         console.error(`Error fetching data for ${username}:`, error);
-        return {
+        usersProgress.push({
           username,
           profileImage: `https://retroachievements.org/UserPic/${username}.png`,
           profileUrl: `https://retroachievements.org/user/${username}`,
@@ -78,11 +84,10 @@ module.exports = async (req, res) => {
           totalAchievements: 0,
           completionPercentage: 0,
           error: true
-        };
+        });
       }
-    }));
+    }
 
-    // Filter out any failed requests and sort by completion percentage
     const sortedUsers = usersProgress
       .filter(user => !user.error)
       .sort((a, b) => b.completionPercentage - a.completionPercentage);
