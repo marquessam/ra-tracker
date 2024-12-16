@@ -17,9 +17,10 @@
             flex-grow: 1;
         }
         .ra-challenge-title {
-            color: #5c3391;
-            font-size: 1.8em;
-            margin: 0 0 15px 0;
+           color: #5c3391;
+           font-size: 2.5em;
+           margin: 25px 0 0 0;
+           line-height: 1;
         }
         .ra-game-info {
             text-align: center;
@@ -237,12 +238,12 @@
                 const data = await response.json();
                 
                 let html = `
-                    <div class="ra-header">
-                        <img src="https://i.ibb.co/TgK5Hx9/select-start-logo-4.png" alt="Select Start" class="ra-logo">
-                        <div class="ra-header-text">
-                            <div class="ra-challenge-title">December Leaderboards</div>
-                        </div>
-                    </div>
+                   <div class="ra-header">
+    <img src="https://i.ibb.co/TgK5Hx9/select-start-logo-4.png" alt="Select Start" class="ra-logo">
+    <div class="ra-header-text">
+        <div class="ra-challenge-title">December Leaderboards</div>
+    </div>
+</div>
                     <div class="ra-game-info">
                         <a href="https://retroachievements.org/game/3236" class="ra-game-link" target="_blank">
                             <img src="https://retroachievements.org${data.gameInfo.ImageIcon}" 
