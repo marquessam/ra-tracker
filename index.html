@@ -8,6 +8,41 @@
             padding: 20px;
             border-radius: 8px;
             font-family: Arial, sans-serif;
+            max-width: 400px;
+        }
+        .ra-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .ra-profile-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            margin-right: 10px;
+        }
+        .ra-username {
+            font-size: 1.2em;
+            color: #5c3391;
+        }
+        .ra-game-info {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .ra-box-art {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+        .ra-game-details {
+            flex: 1;
+        }
+        .ra-game-title {
+            margin: 0 0 10px 0;
+            color: #5c3391;
         }
         .ra-progress {
             background: #2a3a6a;
@@ -42,12 +77,21 @@
                 
                 if (data.Title) {
                     const progressHtml = `
-                        <h3>${data.Title}</h3>
-                        <div class="ra-progress">
-                            <div class="ra-progress-bar" style="width: ${data.completionPercentage}%"></div>
+                        <div class="ra-header">
+                            <img src="${data.profileImage}" alt="${data.username}" class="ra-profile-img">
+                            <span class="ra-username">${data.username}</span>
                         </div>
-                        <div class="ra-stats">
-                            ${data.completedAchievements}/${data.totalAchievements} achievements (${data.completionPercentage}%)
+                        <div class="ra-game-info">
+                            <img src="https://retroachievements.org${data.ImageIcon}" alt="${data.Title}" class="ra-box-art">
+                            <div class="ra-game-details">
+                                <h3 class="ra-game-title">${data.Title}</h3>
+                                <div class="ra-progress">
+                                    <div class="ra-progress-bar" style="width: ${data.completionPercentage}%"></div>
+                                </div>
+                                <div class="ra-stats">
+                                    ${data.completedAchievements}/${data.totalAchievements} achievements (${data.completionPercentage}%)
+                                </div>
+                            </div>
                         </div>
                     `;
                     
