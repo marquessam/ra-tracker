@@ -25,45 +25,29 @@
             margin-top: 10px;
             font-size: 0.9em;
         }
-        .debug-info {
-            font-family: monospace;
-            font-size: 12px;
-            margin-top: 10px;
-            color: #cccccc;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
     </style>
 </head>
 <body>
     <div class="ra-widget">
         <div id="gameProgress"></div>
-        <div id="debugInfo" class="debug-info"></div>
     </div>
 
     <script>
-        const API_ENDPOINT = 'https://retroachievements.org/API';
-        const USERNAME = 'marquessam';
         const GAME_ID = '3236';
         
         async function updateProgress() {
             try {
-                document.getElementById('debugInfo').innerHTML = 'Starting API request...\n';
-                
-                const response = await fetch(`${API_ENDPOINT}/API_GetGame.php?i=${GAME_ID}`);
-                document.getElementById('debugInfo').innerHTML += `Response status: ${response.status}\n`;
-                
+                const response = await fetch(`/api/game-progress?gameId=${GAME_ID}`);
                 const data = await response.json();
-                document.getElementById('debugInfo').innerHTML += 'API Response Data:\n' + JSON.stringify(data, null, 2);
                 
                 if (data.Title) {
                     const progressHtml = `
                         <h3>${data.Title}</h3>
                         <div class="ra-progress">
-                            <div class="ra-progress-bar" style="width: 0%"></div>
+                            <div class="ra-progress-bar" style="width: ${data.completionPercentage}%"></div>
                         </div>
                         <div class="ra-stats">
-                            Game ID: ${GAME_ID}
+                            ${data.completedAchievements}/${data.totalAchievements} achievements (${data.completionPercentage}%)
                         </div>
                     `;
                     
@@ -74,12 +58,12 @@
             } catch (error) {
                 console.error('API Error:', error);
                 document.getElementById('gameProgress').innerHTML = 'Error loading progress';
-                document.getElementById('debugInfo').innerHTML += '\nError: ' + error.toString();
             }
         }
 
-        // Update immediately
+        // Update on load and every 5 minutes
         updateProgress();
+        setInterval(updateProgress, 300000);
     </script>
 </body>
 </html>
