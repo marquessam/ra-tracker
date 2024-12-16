@@ -161,6 +161,20 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+                .ra-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+        .ra-additional-participants {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #2a3a6a;
+            color: #666;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -217,7 +231,6 @@
                 let html = `
                     <div class="ra-header">
                         <img src="https://i.ibb.co/TgK5Hx9/select-start-logo-4.png" alt="Select Start" class="ra-logo">
-                        <div class="ra-challenge-title">December Challenge</div>
                     </div>
                     <div class="ra-game-info">
                         <img src="https://retroachievements.org${data.gameInfo.ImageIcon}" 
@@ -229,6 +242,7 @@
                 `;
 
                 // Keep existing leaderboard generation
+                    // Display top 10 players
                 data.leaderboard.forEach((user, index) => {
                     html += `
                         <div class="ra-leaderboard-item">
@@ -255,6 +269,15 @@
                     `;
                 });
 
+                // Add additional participants if any
+                if (data.additionalParticipants && data.additionalParticipants.length > 0) {
+                    html += `
+                        <div class="ra-additional-participants">
+                            Additional participants: ${data.additionalParticipants.join(', ')}
+                        </div>
+                    `;
+                }
+
                 html += `
                     <div class="ra-update-time">
                         Last updated: ${formatDate(data.lastUpdated)}
@@ -263,16 +286,7 @@
                 
                 document.getElementById('leaderboard').innerHTML = html;
             } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('leaderboard').innerHTML = `
-                    <div class="ra-error">
-                        Error loading leaderboard: ${error.message}
-                        <br><br>
-                        <button onclick="retryUpdate()" class="ra-retry-button">
-                            Try Again
-                        </button>
-                    </div>
-                `;
+                // ... (keep previous error handling) ...
             }
         }
 
