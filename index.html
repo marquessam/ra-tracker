@@ -46,7 +46,7 @@
             font-size: 1.2em;
             font-weight: bold;
             width: 40px;
-            color: #5c3391;
+            color: white;
         }
         .ra-medal {
             font-size: 1.4em;
@@ -66,6 +66,14 @@
             font-weight: bold;
             margin-bottom: 8px;
             font-size: 1.1em;
+        }
+        .ra-username a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .ra-username a:hover {
+            color: #5c3391;
         }
         .ra-progress {
             background: #17254A;
@@ -120,8 +128,15 @@
         async function updateLeaderboard() {
             try {
                 const response = await fetch(`/api/game-progress?gameId=${GAME_ID}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
                 
+                if (!data.gameInfo || !data.leaderboard) {
+                    throw new Error('Invalid data received from API');
+                }
+
                 let html = `
                     <div class="ra-game-info">
                         <img src="https://retroachievements.org${data.gameInfo.ImageIcon}" 
@@ -133,6 +148,8 @@
                 `;
 
                 data.leaderboard.forEach((user, index) => {
+                    if (!user) return; // Skip any null/undefined entries
+                    
                     html += `
                         <div class="ra-leaderboard-item">
                             <span class="ra-rank">#${index + 1}</span>
@@ -142,30 +159,34 @@
                                  class="ra-profile-img"
                                  onerror="this.src='https://retroachievements.org/UserPic/_user.png'">
                             <div class="ra-user-info">
-                                <div class="ra-username">${user.username}</div>
+                                <div class="ra-username">
+                                    <a href="${user.profileUrl}" target="_blank">${user.username}</a>
+                                </div>
                                 <div class="ra-progress">
-                                    <div class="ra-progress-bar" style="width: ${user.completionPercentage}%"></div>
+                                    <div class="ra-progress-bar" style="width: ${user.completionPercentage || 0}%"></div>
                                 </div>
                             </div>
                             <div class="ra-completion">
-                                ${user.completedAchievements}/${user.totalAchievements}
+                                ${user.completedAchievements || 0}/${user.totalAchievements || 0}
                                 <br>
-                                ${user.completionPercentage}%
+                                ${user.completionPercentage || 0}%
                             </div>
                         </div>
                     `;
                 });
 
-                html += `
-                    <div class="ra-update-time">
-                        Last updated: ${formatDate(data.lastUpdated)}
-                    </div>
-                `;
+                if (data.lastUpdated) {
+                    html += `
+                        <div class="ra-update-time">
+                            Last updated: ${formatDate(data.lastUpdated)}
+                        </div>
+                    `;
+                }
                 
                 document.getElementById('leaderboard').innerHTML = html;
             } catch (error) {
-                console.error('API Error:', error);
-                document.getElementById('leaderboard').innerHTML = 'Error loading leaderboard';
+                console.error('Error:', error);
+                document.getElementById('leaderboard').innerHTML = `Error loading leaderboard: ${error.message}`;
             }
         }
 
