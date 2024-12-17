@@ -1,48 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        .ra-widget {
+            background: #17254A;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
         .ra-header {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
+
         .ra-logo {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             object-fit: contain;
         }
+
         .ra-header-text {
             margin-left: 20px;
             flex-grow: 1;
         }
+
         .ra-challenge-title {
-           color: #5c3391;
-           font-size: 2.5em;
-           margin: 25px 0 0 0;
-           line-height: 1;
+            color: white;
+            font-size: 1.8em;
+            margin: 0 0 15px 0;
         }
+
         .ra-game-info {
             text-align: center;
-            margin-bottom: 20px;
             padding: 20px 0;
             border-top: 2px solid #2a3a6a;
             border-bottom: 2px solid #2a3a6a;
         }
+
         .ra-game-link {
             color: inherit;
             text-decoration: none;
             display: inline-block;
             transition: opacity 0.2s;
         }
+
         .ra-game-link:hover {
             opacity: 0.8;
         }
+
+        .ra-box-art {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+
         .ra-game-title {
             color: white;
-            margin: 0;
+            margin: 10px 0;
             font-size: 1.5em;
         }
+
         .ra-challenge-info {
             background: #2a3a6a;
             padding: 20px;
@@ -51,22 +77,7 @@
             line-height: 1.6;
             font-size: 0.9em;
         }
-        .ra-widget {
-            background: #17254A;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .ra-box-art {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-right: 15px;
-        }
+
         .ra-leaderboard-item {
             display: flex;
             align-items: center;
@@ -75,20 +86,26 @@
             background: #2a3a6a;
             border-radius: 4px;
             transition: transform 0.2s;
+            flex-wrap: wrap;
+            gap: 10px;
         }
+
         .ra-leaderboard-item:hover {
             transform: translateX(5px);
         }
+
         .ra-rank {
             font-size: 1.2em;
             font-weight: bold;
             width: 40px;
             color: white;
         }
+
         .ra-medal {
             font-size: 1.4em;
             width: 40px;
         }
+
         .ra-profile-img {
             width: 50px;
             height: 50px;
@@ -96,22 +113,28 @@
             margin-right: 15px;
             border: 2px solid #5c3391;
         }
+
         .ra-user-info {
             flex: 1;
+            min-width: 200px;
         }
+
         .ra-username {
             font-weight: bold;
             margin-bottom: 8px;
             font-size: 1.1em;
         }
+
         .ra-username a {
             color: white;
             text-decoration: none;
             transition: color 0.2s;
         }
+
         .ra-username a:hover {
             color: #5c3391;
         }
+
         .ra-progress {
             background: #17254A;
             border-radius: 4px;
@@ -120,24 +143,37 @@
             width: 100%;
             max-width: 300px;
         }
+
         .ra-progress-bar {
             background: #5c3391;
             height: 100%;
             border-radius: 4px;
             transition: width 0.5s ease-in-out;
         }
+
         .ra-completion {
             margin-left: 15px;
             font-size: 0.9em;
             min-width: 120px;
             text-align: right;
         }
+
+        .ra-additional-participants {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #2a3a6a;
+            color: #666;
+            font-size: 0.9em;
+        }
+
         .ra-update-time {
             text-align: center;
             margin-top: 20px;
             font-size: 0.8em;
             color: #666;
         }
+
         .ra-loading {
             text-align: center;
             padding: 40px;
@@ -145,6 +181,7 @@
             border-radius: 8px;
             margin: 20px 0;
         }
+
         .ra-loading-spinner {
             border: 4px solid #17254A;
             border-top: 4px solid #5c3391;
@@ -154,6 +191,7 @@
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
+
         .ra-error {
             background: #2a3a6a;
             color: #ff6b6b;
@@ -162,6 +200,7 @@
             margin: 20px 0;
             text-align: center;
         }
+
         .ra-retry-button {
             background: #5c3391;
             color: white;
@@ -171,20 +210,107 @@
             cursor: pointer;
             margin-top: 10px;
         }
+
         .ra-retry-button:hover {
             background: #4a2a75;
         }
-        .ra-additional-participants {
-            text-align: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid #2a3a6a;
-            color: #666;
-            font-size: 0.9em;
-        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* Media queries for different screen sizes */
+        @media (max-width: 600px) {
+            .ra-widget {
+                padding: 10px;
+            }
+
+            .ra-header {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .ra-header-text {
+                width: 100%;
+                text-align: center;
+                margin-top: 10px;
+                margin-left: 0;
+            }
+
+            .ra-challenge-title {
+                font-size: 1.5em;
+                margin: 5px 0;
+            }
+
+            .ra-challenge-info {
+                font-size: 0.85em;
+                padding: 15px;
+            }
+
+            .ra-box-art {
+                width: 80px;
+                height: 80px;
+                margin-right: 0;
+            }
+
+            .ra-game-title {
+                font-size: 1.2em;
+            }
+
+            .ra-leaderboard-item {
+                padding: 8px;
+            }
+
+            .ra-rank {
+                width: 30px;
+                font-size: 1em;
+            }
+
+            .ra-medal {
+                width: 30px;
+                font-size: 1.2em;
+            }
+
+            .ra-profile-img {
+                width: 40px;
+                height: 40px;
+            }
+
+            .ra-username {
+                font-size: 1em;
+            }
+
+            .ra-progress {
+                max-width: 100%;
+            }
+
+            .ra-completion {
+                font-size: 0.8em;
+                width: 100%;
+                text-align: center;
+                margin: 5px 0 0 0;
+            }
+
+            .ra-additional-participants {
+                font-size: 0.8em;
+                padding: 10px;
+            }
+        }
+
+        /* For very small screens */
+        @media (max-width: 380px) {
+            .ra-challenge-title {
+                font-size: 1.3em;
+            }
+
+            .ra-user-info {
+                min-width: 150px;
+            }
+
+            .ra-username {
+                font-size: 0.9em;
+            }
         }
     </style>
 </head>
@@ -238,12 +364,12 @@
                 const data = await response.json();
                 
                 let html = `
-                   <div class="ra-header">
-    <img src="https://i.ibb.co/TgK5Hx9/select-start-logo-4.png" alt="Select Start" class="ra-logo">
-    <div class="ra-header-text">
-        <div class="ra-challenge-title">December Leaderboards</div>
-    </div>
-</div>
+                    <div class="ra-header">
+                        <img src="https://i.ibb.co/TgK5Hx9/select-start-logo-4.png" alt="Select Start" class="ra-logo">
+                        <div class="ra-header-text">
+                            <div class="ra-challenge-title">December Leaderboards</div>
+                        </div>
+                    </div>
                     <div class="ra-game-info">
                         <a href="https://retroachievements.org/game/3236" class="ra-game-link" target="_blank">
                             <img src="https://retroachievements.org${data.gameInfo.ImageIcon}" 
@@ -324,18 +450,17 @@
 
         // Update every 5 minutes
         updateTimer = setInterval(updateLeaderboardWithTimeout, 300000);
-    </script>
-    <script>
-    // Function to send height to parent
-    function updateParentHeight() {
-        const height = document.body.scrollHeight;
-        window.parent.postMessage({ type: 'resize', height: height }, '*');
-    }
 
-    // Send height after initial load and any updates
-    window.addEventListener('load', updateParentHeight);
-    // Also update periodically in case content changes
-    setInterval(updateParentHeight, 1000);
-</script>
+        // Function to send height to parent
+        function updateParentHeight() {
+            const height = document.body.scrollHeight;
+            window.parent.postMessage({ type: 'resize', height: height }, '*');
+        }
+
+        // Send height after initial load and any updates
+        window.addEventListener('load', updateParentHeight);
+        // Also update periodically in case content changes
+        setInterval(updateParentHeight, 1000);
+    </script>
 </body>
 </html>
