@@ -6,16 +6,22 @@ module.exports = async (req, res) => {
   console.log('API request started');
   
   try {
+    const { gameId } = req.query;
+    console.log('Game ID:', gameId);
+
     const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRt6MiNALBT6jj0hG5qtalI_GkSkXFaQvWdRj-Ye-l3YNU4DB5mLUQGHbLF9-XnhkpJjLEN9gvTHXmp/pub?gid=0&single=true&output=csv';
 
-// Fetch users from spreadsheet
-const response = await fetch(SPREADSHEET_URL);
-const csvText = await response.text();
-const users = csvText
-    .split('\n')              // Split into lines
-    .map(line => line.trim()) // Remove whitespace
-    .filter(line => line)     // Remove empty lines
-    .slice(1);                // Remove header row if present
+    // Fetch users from spreadsheet
+    console.log('Fetching users from spreadsheet...');
+    const csvResponse = await fetch(SPREADSHEET_URL);
+    const csvText = await csvResponse.text();
+    const users = csvText
+        .split('\n')              // Split into lines
+        .map(line => line.trim()) // Remove whitespace
+        .filter(line => line)     // Remove empty lines
+        .slice(1);                // Remove header row if present
+    
+    console.log('Fetched users:', users);
     
     if (!process.env.RA_API_KEY || !process.env.RA_USERNAME) {
       throw new Error('Missing environment variables');
@@ -38,7 +44,6 @@ const users = csvText
         });
 
         const url = `https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?${params}`;
-        const { gameId } = req.query;
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -106,10 +111,15 @@ const users = csvText
     return res.status(200).json(response);
 
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('Detailed API Error:', {
+      message: error.message,
+      stack: error.stack,
+      type: error.constructor.name
+    });
     return res.status(500).json({ 
       error: 'Failed to fetch leaderboard data', 
-      details: error.message 
+      details: error.message,
+      type: error.constructor.name
     });
   }
 };
