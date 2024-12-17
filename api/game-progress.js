@@ -38,6 +38,7 @@ const users = csvText
         });
 
         const url = `https://retroachievements.org/API/API_GetGameInfoAndUserProgress.php?${params}`;
+        const { gameId } = req.query;
         const response = await fetch(url);
         
         if (!response.ok) {
