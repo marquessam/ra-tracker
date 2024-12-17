@@ -325,5 +325,17 @@
         // Update every 5 minutes
         updateTimer = setInterval(updateLeaderboardWithTimeout, 300000);
     </script>
+    <script>
+    // Function to send height to parent
+    function updateParentHeight() {
+        const height = document.body.scrollHeight;
+        window.parent.postMessage({ type: 'resize', height: height }, '*');
+    }
+
+    // Send height after initial load and any updates
+    window.addEventListener('load', updateParentHeight);
+    // Also update periodically in case content changes
+    setInterval(updateParentHeight, 1000);
+</script>
 </body>
 </html>
