@@ -6,22 +6,16 @@ module.exports = async (req, res) => {
   console.log('API request started');
   
   try {
-    const { gameId } = req.query;
-    const users = [
-      'Mbutters',
-      'lowaims',
-      'ShminalShmantasy',
-      'Marquessam',
-      'Xsiverx',
-      'zckttck',
-      'Audex',
-      'ParanoidPunky',
-      'Magus508',
-      'ytwok',
-      'joebobdead',
-      'tragicnostalgic',
-      'MuttonchopMac'
-    ];
+    const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRt6MiNALBT6jj0hG5qtalI_GkSkXFaQvWdRj-Ye-l3YNU4DB5mLUQGHbLF9-XnhkpJjLEN9gvTHXmp/pub?gid=0&single=true&output=csv';
+
+// Fetch users from spreadsheet
+const response = await fetch(SPREADSHEET_URL);
+const csvText = await response.text();
+const users = csvText
+    .split('\n')              // Split into lines
+    .map(line => line.trim()) // Remove whitespace
+    .filter(line => line)     // Remove empty lines
+    .slice(1);                // Remove header row if present
     
     if (!process.env.RA_API_KEY || !process.env.RA_USERNAME) {
       throw new Error('Missing environment variables');
