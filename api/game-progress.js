@@ -99,8 +99,8 @@ module.exports = async (req, res) => {
 
     const response = {
       gameInfo: validGameInfo || { 
-        Title: "Final Fantasy Tactics: The War of the Lions",
-        ImageIcon: "/Images/017657.png"
+        Title: "Chrono Trigger",
+        ImageIcon: "/Images/093950.png"
       },
       leaderboard: topTen,
       additionalParticipants: additionalParticipants,
