@@ -399,25 +399,26 @@ async function updateLeaderboardWithTimeout() {
         // Render leaderboard entries
       // Render leaderboard entries with tie handling
 // Render leaderboard entries with tie handling
-let currentRank = 0;
-let displayedRank = 0; // Rank to display
+// Render leaderboard entries with tie handling
+let currentRank = 0; // Tracks the overall position in the leaderboard
+let displayedRank = 0; // Tracks the rank to display
 let lastCompletionPercentage = null;
 let lastCompletedAchievements = null;
 
-data.leaderboard.forEach((user, index) => {
+data.leaderboard.forEach((user) => {
     if (user.completedAchievements > 0) {
-        // Check for a tie: same completion percentage and same completed achievements
+        // Increment the rank only if not a tie
         if (
             user.completionPercentage !== lastCompletionPercentage ||
             user.completedAchievements !== lastCompletedAchievements
         ) {
-            displayedRank = currentRank + 1; // Increment the rank only if not a tie
+            displayedRank = currentRank + 1; // Update displayed rank
         }
 
-        currentRank++; // Always increment to maintain the correct skipped rank
-        
+        currentRank++; // Always increment to ensure no ranks are skipped
+
         const medal = getMedal(displayedRank - 1); // Use displayedRank for medals
-        
+
         html += `
             <div class="ra-leaderboard-item">
                 <span class="ra-rank">#${displayedRank}</span>
