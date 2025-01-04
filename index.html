@@ -336,120 +336,123 @@
             return date.toLocaleString();
         }
 
-        async function updateLeaderboardWithTimeout() {
-            const timeout = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Request timed out')), TIMEOUT_DURATION)
-            );
+      // In your index.html, replace the updateLeaderboardWithTimeout function with:
 
-            try {
+async function updateLeaderboardWithTimeout() {
+    const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timed out')), TIMEOUT_DURATION)
+    );
+
+    try {
+        // Show initial loading message
+        document.getElementById('leaderboard').innerHTML = `
+            <div class="ra-loading">
+                <div class="ra-loading-spinner"></div>
+                <div>Loading leaderboard data...</div>
+                <div style="font-size: 0.8em; margin-top: 10px; color: #888;">
+                    This may take a few moments as we fetch data for top players
+                </div>
+            </div>
+        `;
+
+        const fetchPromise = fetch(`/api/game-progress?gameId=${GAME_ID}`);
+        const response = await Promise.race([fetchPromise, timeout]);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
                 
-document.getElementById('leaderboard').innerHTML = `
-    <div class="ra-loading">
-        <div class="ra-loading-spinner"></div>
-        <div>Loading top players data...</div>
-        <div style="font-size: 0.8em; margin-top: 10px; color: #888;">
-            Showing results from the first ${data.processedParticipants} of ${data.totalParticipants} participants
-        </div>
-    </div>
-`;
+        let html = `
+            <div class="ra-header">
+                <img src="https://i.ibb.co/TgK5Hx9/select-start-logo-4.png" alt="Select Start" class="ra-logo">
+                <div class="ra-header-text">
+                    <div class="ra-challenge-title">January Leaderboards</div>
+                </div>
+            </div>
+            <div class="ra-game-info">
+                <a href="https://retroachievements.org/game/${GAME_ID}" class="ra-game-link" target="_blank">
+                    <img src="https://retroachievements.org${data.gameInfo.ImageIcon}" 
+                         alt="${data.gameInfo.Title}" 
+                         class="ra-box-art"
+                         onerror="this.src='https://retroachievements.org/Images/017657.png'">
+                    <h2 class="ra-game-title">${data.gameInfo.Title}</h2>
+                </a>
+            </div>
+            <div class="ra-challenge-info">
+                This challenge runs from January 1st, 2024 to January 31st, 2025 as part of the gaming community Select Start. 
+                All players must have hardcore mode turned on for RetroAchievements. Any discrepancies, ties, or edge case situations 
+                will be judged case by case and settled upon in the multiplayer game of each combatant's choosing.
+            </div>
+        `;
 
-                const fetchPromise = fetch(`/api/game-progress?gameId=${GAME_ID}`);
-                const response = await Promise.race([fetchPromise, timeout]);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
+        // Display processing status if available
+        if (data.totalParticipants) {
+            html += `
+                <div style="text-align: center; margin: 10px 0; font-size: 0.8em; color: #666;">
+                    Showing results from ${data.processedParticipants} of ${data.totalParticipants} total participants
+                </div>
+            `;
+        }
 
-                // Filter out users with no progress
-                const activeUsers = data.leaderboard.filter(user => 
-                    user.completedAchievements > 0 && user.completionPercentage > 0
-                );
-                
-                let html = `
-                    <div class="ra-header">
-                        <img src="https://i.ibb.co/TgK5Hx9/select-start-logo-4.png" alt="Select Start" class="ra-logo">
-                        <div class="ra-header-text">
-                            <div class="ra-challenge-title">January Leaderboards</div>
-                        </div>
-                    </div>
-                    <div class="ra-game-info">
-                        <a href="https://retroachievements.org/game/${GAME_ID}" class="ra-game-link" target="_blank">
-                            <img src="https://retroachievements.org${data.gameInfo.ImageIcon}" 
-                                 alt="${data.gameInfo.Title}" 
-                                 class="ra-box-art"
-                                 onerror="this.src='https://retroachievements.org/Images/017657.png'">
-                            <h2 class="ra-game-title">${data.gameInfo.Title}</h2>
-                        </a>
-                    </div>
-                    <div class="ra-challenge-info">
-                        This challenge runs from January 1st, 2024 to January 31st, 2025 as part of the gaming community Select Start. 
-                        All players must have hardcore mode turned on for RetroAchievements. Any discrepancies, ties, or edge case situations 
-                        will be judged case by case and settled upon in the multiplayer game of each combatant's choosing.
-                    </div>
-                `;
-
-                activeUsers.forEach((user, index) => {
-                    html += `
-                        <div class="ra-leaderboard-item">
-                            <span class="ra-rank">#${index + 1}</span>
-                            <span class="ra-medal">${getMedal(index)}</span>
-                            <img src="${user.profileImage}" 
-                                 alt="${user.username}" 
-                                 class="ra-profile-img"
-                                 onerror="this.src='https://retroachievements.org/UserPic/_user.png'">
-                            <div class="ra-user-info">
-                                <div class="ra-username">
-                                    <a href="${user.profileUrl}" target="_blank">${user.username}</a>
-                                </div>
-                                <div class="ra-progress">
-                                    <div class="ra-progress-bar" style="width: ${user.completionPercentage}%"></div>
-                                </div>
-                            </div>
-                            <div class="ra-completion">
-                                ${user.completedAchievements}/${user.totalAchievements}
-                                <br>
-                                ${user.completionPercentage}%
-                            </div>
-                        </div>
-                    `;
-                });
-
-                // Filter additional participants
-                const activeParticipants = data.additionalParticipants.filter(username => {
-                    const userInLeaderboard = data.leaderboard.find(u => u.username === username);
-                    return userInLeaderboard && userInLeaderboard.completedAchievements > 0;
-                });
-
-                if (activeParticipants.length > 0) {
-                    html += `
-                        <div class="ra-additional-participants">
-                            Additional participants: ${activeParticipants.join(', ')}
-                        </div>
-                    `;
-                }
-
+        // Render leaderboard entries
+        data.leaderboard.forEach((user, index) => {
+            if (user.completedAchievements > 0) {
                 html += `
-                    <div class="ra-update-time">
-                        Last updated: ${formatDate(data.lastUpdated)}
-                    </div>
-                `;
-                
-                document.getElementById('leaderboard').innerHTML = html;
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('leaderboard').innerHTML = `
-                    <div class="ra-error">
-                        Error loading leaderboard: ${error.message}
-                        <br><br>
-                        <button onclick="retryUpdate()" class="ra-retry-button">
-                            Try Again
-                        </button>
+                    <div class="ra-leaderboard-item">
+                        <span class="ra-rank">#${index + 1}</span>
+                        <span class="ra-medal">${getMedal(index)}</span>
+                        <img src="${user.profileImage}" 
+                             alt="${user.username}" 
+                             class="ra-profile-img"
+                             onerror="this.src='https://retroachievements.org/UserPic/_user.png'">
+                        <div class="ra-user-info">
+                            <div class="ra-username">
+                                <a href="${user.profileUrl}" target="_blank">${user.username}</a>
+                            </div>
+                            <div class="ra-progress">
+                                <div class="ra-progress-bar" style="width: ${user.completionPercentage}%"></div>
+                            </div>
+                        </div>
+                        <div class="ra-completion">
+                            ${user.completedAchievements}/${user.totalAchievements}
+                            <br>
+                            ${user.completionPercentage}%
+                        </div>
                     </div>
                 `;
             }
+        });
+
+        if (data.additionalParticipants && data.additionalParticipants.length > 0) {
+            html += `
+                <div class="ra-additional-participants">
+                    Additional participants: ${data.additionalParticipants.join(', ')}
+                </div>
+            `;
         }
+
+        html += `
+            <div class="ra-update-time">
+                Last updated: ${formatDate(data.lastUpdated)}
+            </div>
+        `;
+        
+        document.getElementById('leaderboard').innerHTML = html;
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('leaderboard').innerHTML = `
+            <div class="ra-error">
+                Error loading leaderboard: ${error.message}
+                <br><br>
+                <button onclick="retryUpdate()" class="ra-retry-button">
+                    Try Again
+                </button>
+            </div>
+        `;
+    }
+}
 
         function retryUpdate() {
             updateLeaderboardWithTimeout();
