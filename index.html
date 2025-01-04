@@ -342,15 +342,16 @@
             );
 
             try {
-                document.getElementById('leaderboard').innerHTML = `
-                    <div class="ra-loading">
-                        <div class="ra-loading-spinner"></div>
-                        <div>Loading leaderboard data...</div>
-                        <div style="font-size: 0.8em; margin-top: 10px; color: #888;">
-                            This may take a few moments as we fetch data for all players
-                        </div>
-                    </div>
-                `;
+                
+document.getElementById('leaderboard').innerHTML = `
+    <div class="ra-loading">
+        <div class="ra-loading-spinner"></div>
+        <div>Loading top players data...</div>
+        <div style="font-size: 0.8em; margin-top: 10px; color: #888;">
+            Showing results from the first ${data.processedParticipants} of ${data.totalParticipants} participants
+        </div>
+    </div>
+`;
 
                 const fetchPromise = fetch(`/api/game-progress?gameId=${GAME_ID}`);
                 const response = await Promise.race([fetchPromise, timeout]);
