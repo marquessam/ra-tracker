@@ -1,17 +1,12 @@
 {
   "version": 2,
+  "functions": {
+    "api/game-progress.js": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" }
- ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=300, stale-while-revalidate=60"
-        }
-      ]
-    }
   ]
 }
