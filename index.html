@@ -397,8 +397,9 @@ async function updateLeaderboardWithTimeout() {
         }
 
         // Render leaderboard entries
-       // Render leaderboard entries with tie handling
+      // Render leaderboard entries with tie handling
 let currentRank = 0;
+let displayedRank = 0; // Rank to display
 let lastCompletionPercentage = null;
 let lastCompletedAchievements = null;
 
@@ -409,13 +410,15 @@ data.leaderboard.forEach((user, index) => {
             user.completionPercentage !== lastCompletionPercentage ||
             user.completedAchievements !== lastCompletedAchievements
         ) {
-            currentRank = index + 1; // Update rank if no tie
+            displayedRank = currentRank + 1; // Increment the rank only if not a tie
         }
 
+        currentRank++; // Always increment to maintain the correct skipped rank
+        
         html += `
             <div class="ra-leaderboard-item">
-                <span class="ra-rank">#${currentRank}</span>
-                <span class="ra-medal">${getMedal(currentRank - 1)}</span>
+                <span class="ra-rank">#${displayedRank}</span>
+                <span class="ra-medal">${getMedal(displayedRank - 1)}</span>
                 <img src="${user.profileImage}" 
                      alt="${user.username}" 
                      class="ra-profile-img"
@@ -441,6 +444,7 @@ data.leaderboard.forEach((user, index) => {
         lastCompletedAchievements = user.completedAchievements;
     }
 });
+
 
         if (data.additionalParticipants && data.additionalParticipants.length > 0) {
             html += `
