@@ -220,7 +220,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Media queries for different screen sizes */
         @media (max-width: 600px) {
             .ra-widget {
                 padding: 10px;
@@ -298,7 +297,6 @@
             }
         }
 
-        /* For very small screens */
         @media (max-width: 380px) {
             .ra-challenge-title {
                 font-size: 1.3em;
@@ -362,6 +360,11 @@
                 }
                 
                 const data = await response.json();
+
+                // Filter out users with no progress
+                const activeUsers = data.leaderboard.filter(user => 
+                    user.completedAchievements > 0 && user.completionPercentage > 0
+                );
                 
                 let html = `
                     <div class="ra-header">
@@ -371,7 +374,7 @@
                         </div>
                     </div>
                     <div class="ra-game-info">
-                        <a href="https://retroachievements.org/game/319" class="ra-game-link" target="_blank">
+                        <a href="https://retroachievements.org/game/${GAME_ID}" class="ra-game-link" target="_blank">
                             <img src="https://retroachievements.org${data.gameInfo.ImageIcon}" 
                                  alt="${data.gameInfo.Title}" 
                                  class="ra-box-art"
@@ -386,7 +389,7 @@
                     </div>
                 `;
 
-                data.leaderboard.forEach((user, index) => {
+                activeUsers.forEach((user, index) => {
                     html += `
                         <div class="ra-leaderboard-item">
                             <span class="ra-rank">#${index + 1}</span>
@@ -412,10 +415,16 @@
                     `;
                 });
 
-                if (data.additionalParticipants && data.additionalParticipants.length > 0) {
+                // Filter additional participants
+                const activeParticipants = data.additionalParticipants.filter(username => {
+                    const userInLeaderboard = data.leaderboard.find(u => u.username === username);
+                    return userInLeaderboard && userInLeaderboard.completedAchievements > 0;
+                });
+
+                if (activeParticipants.length > 0) {
                     html += `
                         <div class="ra-additional-participants">
-                            Additional participants: ${data.additionalParticipants.join(', ')}
+                            Additional participants: ${activeParticipants.join(', ')}
                         </div>
                     `;
                 }
