@@ -49,18 +49,19 @@ module.exports = async (req, res) => {
     };
 
     console.log('Starting user data fetch');
-    const batchSize = 3; // Reduced batch size for more stable requests
+    const batchSize = 2; // Reduced batch size even further
     const results = [];
     
     // Process users in smaller batches
     for (let i = 0; i < users.length; i += batchSize) {
       const batch = users.slice(i, i + batchSize);
-      console.log(`Processing batch ${i / batchSize + 1} of ${Math.ceil(users.length / batchSize)}`);
+      console.log(`Processing batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(users.length / batchSize)}`);
       
-      const batchPromises = batch.map(async (username) => {
+      // Sequential processing within batch
+      for (const username of batch) {
         try {
-          // Add a small random delay to prevent exact concurrent requests
-          await new Promise(resolve => setTimeout(resolve, Math.random() * 200));
+          // Add a delay before each request
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
           const params = new URLSearchParams({
             z: process.env.RA_USERNAME,
@@ -99,17 +100,17 @@ module.exports = async (req, res) => {
             ? ((completed / numAchievements) * 100).toFixed(2) 
             : "0.00";
 
-          return {
+          results.push({
             username,
             profileImage: `https://retroachievements.org/UserPic/${username}.png`,
             profileUrl: `https://retroachievements.org/user/${username}`,
             completedAchievements: completed,
             totalAchievements: numAchievements,
             completionPercentage: parseFloat(completionPct) || 0
-          };
+          });
         } catch (error) {
           console.error(`Error fetching data for ${username}:`, error);
-          return {
+          results.push({
             username,
             profileImage: `https://retroachievements.org/UserPic/${username}.png`,
             profileUrl: `https://retroachievements.org/user/${username}`,
@@ -117,15 +118,12 @@ module.exports = async (req, res) => {
             totalAchievements: 0,
             completionPercentage: 0,
             error: true
-          };
+          });
         }
-      });
-
-      const batchResults = await Promise.all(batchPromises);
-      results.push(...batchResults);
+      }
       
-      // Add delay between batches to prevent rate limiting
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Add delay between batches
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
     console.log('Finished fetching all user data');
@@ -168,7 +166,7 @@ module.exports = async (req, res) => {
     const topTen = sortedUsers.slice(0, 10);
     const additionalParticipants = sortedUsers.slice(10)
       .map(user => user.username)
-      .sort((a, b) => a.localeCompare(b)); // Sort additional participants alphabetically
+      .sort((a, b) => a.localeCompare(b));
 
     const response = {
       gameInfo: validGameInfo,
