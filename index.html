@@ -397,33 +397,50 @@ async function updateLeaderboardWithTimeout() {
         }
 
         // Render leaderboard entries
-        data.leaderboard.forEach((user, index) => {
-            if (user.completedAchievements > 0) {
-                html += `
-                    <div class="ra-leaderboard-item">
-                        <span class="ra-rank">#${index + 1}</span>
-                        <span class="ra-medal">${getMedal(index)}</span>
-                        <img src="${user.profileImage}" 
-                             alt="${user.username}" 
-                             class="ra-profile-img"
-                             onerror="this.src='https://retroachievements.org/UserPic/_user.png'">
-                        <div class="ra-user-info">
-                            <div class="ra-username">
-                                <a href="${user.profileUrl}" target="_blank">${user.username}</a>
-                            </div>
-                            <div class="ra-progress">
-                                <div class="ra-progress-bar" style="width: ${user.completionPercentage}%"></div>
-                            </div>
-                        </div>
-                        <div class="ra-completion">
-                            ${user.completedAchievements}/${user.totalAchievements}
-                            <br>
-                            ${user.completionPercentage}%
-                        </div>
+       // Render leaderboard entries with tie handling
+let currentRank = 0;
+let lastCompletionPercentage = null;
+let lastCompletedAchievements = null;
+
+data.leaderboard.forEach((user, index) => {
+    if (user.completedAchievements > 0) {
+        // Check for a tie: same completion percentage and same completed achievements
+        if (
+            user.completionPercentage !== lastCompletionPercentage ||
+            user.completedAchievements !== lastCompletedAchievements
+        ) {
+            currentRank = index + 1; // Update rank if no tie
+        }
+
+        html += `
+            <div class="ra-leaderboard-item">
+                <span class="ra-rank">#${currentRank}</span>
+                <span class="ra-medal">${getMedal(currentRank - 1)}</span>
+                <img src="${user.profileImage}" 
+                     alt="${user.username}" 
+                     class="ra-profile-img"
+                     onerror="this.src='https://retroachievements.org/UserPic/_user.png'">
+                <div class="ra-user-info">
+                    <div class="ra-username">
+                        <a href="${user.profileUrl}" target="_blank">${user.username}</a>
                     </div>
-                `;
-            }
-        });
+                    <div class="ra-progress">
+                        <div class="ra-progress-bar" style="width: ${user.completionPercentage}%"></div>
+                    </div>
+                </div>
+                <div class="ra-completion">
+                    ${user.completedAchievements}/${user.totalAchievements}
+                    <br>
+                    ${user.completionPercentage}%
+                </div>
+            </div>
+        `;
+
+        // Update the last score/percentage for the next iteration
+        lastCompletionPercentage = user.completionPercentage;
+        lastCompletedAchievements = user.completedAchievements;
+    }
+});
 
         if (data.additionalParticipants && data.additionalParticipants.length > 0) {
             html += `
