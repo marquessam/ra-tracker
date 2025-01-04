@@ -398,6 +398,7 @@ async function updateLeaderboardWithTimeout() {
 
         // Render leaderboard entries
       // Render leaderboard entries with tie handling
+// Render leaderboard entries with tie handling
 let currentRank = 0;
 let displayedRank = 0; // Rank to display
 let lastCompletionPercentage = null;
@@ -415,10 +416,12 @@ data.leaderboard.forEach((user, index) => {
 
         currentRank++; // Always increment to maintain the correct skipped rank
         
+        const medal = getMedal(displayedRank - 1); // Use displayedRank for medals
+        
         html += `
             <div class="ra-leaderboard-item">
                 <span class="ra-rank">#${displayedRank}</span>
-                <span class="ra-medal">${getMedal(displayedRank - 1)}</span>
+                <span class="ra-medal">${medal}</span>
                 <img src="${user.profileImage}" 
                      alt="${user.username}" 
                      class="ra-profile-img"
@@ -444,6 +447,7 @@ data.leaderboard.forEach((user, index) => {
         lastCompletedAchievements = user.completedAchievements;
     }
 });
+
 
 
         if (data.additionalParticipants && data.additionalParticipants.length > 0) {
