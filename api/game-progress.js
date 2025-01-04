@@ -81,9 +81,19 @@ module.exports = async (req, res) => {
           // Extract achievement data
           const achievements = data.Achievements || {};
           const numAchievements = Object.keys(achievements).length;
+          
+          // More strict checking for completed achievements
           const completed = Object.values(achievements)
-            .filter(ach => parseInt(ach.DateEarned) > 0)
+            .filter(ach => {
+              const dateEarned = parseInt(ach.DateEarned);
+              return !isNaN(dateEarned) && dateEarned > 0;
+            })
             .length;
+            
+          console.log(`User ${username} achievements:`, {
+            total: numAchievements,
+            completed: completed
+          });
             
           const completionPct = numAchievements > 0 
             ? ((completed / numAchievements) * 100).toFixed(2) 
@@ -120,9 +130,32 @@ module.exports = async (req, res) => {
 
     console.log('Finished fetching all user data');
     
+    console.log('Pre-filter results:', results.map(user => ({
+      username: user.username,
+      completed: user.completedAchievements,
+      total: user.totalAchievements,
+      percentage: user.completionPercentage
+    })));
+
     // Sort users and split into top 10 and others
     const sortedUsers = results
-      .filter(user => !user.error && user.totalAchievements > 0 && user.completionPercentage > 0) // Only include valid entries with progress
+      .filter(user => {
+        const isValid = !user.error && 
+                       user.totalAchievements > 0 && 
+                       user.completedAchievements > 0 && 
+                       user.completionPercentage > 0;
+        
+        if (!isValid) {
+          console.log(`Filtered out user ${user.username}:`, {
+            hasError: user.error,
+            totalAchievements: user.totalAchievements,
+            completedAchievements: user.completedAchievements,
+            completionPercentage: user.completionPercentage
+          });
+        }
+        
+        return isValid;
+      })
       .sort((a, b) => {
         // First sort by completion percentage
         const percentageDiff = b.completionPercentage - a.completionPercentage;
