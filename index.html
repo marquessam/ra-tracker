@@ -397,27 +397,22 @@ async function updateLeaderboardWithTimeout() {
         }
 
         // Render leaderboard entries
-      // Render leaderboard entries with tie handling
-// Render leaderboard entries with tie handling
-// Render leaderboard entries with tie handling
-let currentRank = 0; // Tracks the overall position in the leaderboard
+    // Render leaderboard entries with proper rank handling
 let displayedRank = 0; // Tracks the rank to display
 let lastCompletionPercentage = null;
 let lastCompletedAchievements = null;
 
-data.leaderboard.forEach((user) => {
+data.leaderboard.forEach((user, index) => {
     if (user.completedAchievements > 0) {
-        // Increment the rank only if not a tie
+        // Increment displayed rank only if no tie
         if (
             user.completionPercentage !== lastCompletionPercentage ||
             user.completedAchievements !== lastCompletedAchievements
         ) {
-            displayedRank = currentRank + 1; // Update displayed rank
+            displayedRank++; // Increment the rank for a non-tied user
         }
 
-        currentRank++; // Always increment to ensure no ranks are skipped
-
-        const medal = getMedal(displayedRank - 1); // Use displayedRank for medals
+        const medal = getMedal(displayedRank - 1); // Medals are based on displayed rank
 
         html += `
             <div class="ra-leaderboard-item">
@@ -443,11 +438,12 @@ data.leaderboard.forEach((user) => {
             </div>
         `;
 
-        // Update the last score/percentage for the next iteration
+        // Update last values for tie comparison
         lastCompletionPercentage = user.completionPercentage;
         lastCompletedAchievements = user.completedAchievements;
     }
 });
+
 
 
 
