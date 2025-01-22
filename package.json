@@ -1,7 +1,22 @@
 {
-  "name": "ra-tracker",
-  "version": "1.0.0",
-  "dependencies": {
-    "node-fetch": "^2.6.1"
+  "name": "select-start-apps",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "turbo": "^1.10.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
   }
 }
